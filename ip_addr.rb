@@ -21,6 +21,16 @@ class IPGenerator
   end
 end
 
+class IpPool
+  def initialize(ip_addr_range, dhcp, dns_settings, proxy_server, network_associations)
+    @range = ip_addr_range
+  end
+end
+
+class Ip < ActiveRecord::Base
+  def initialize()
+  end
+end
 
 ranges = ["192.168.2.0/24", ["192.168.3.2", "192.168.3.9"]]
  
