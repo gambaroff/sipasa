@@ -7,16 +7,14 @@ class TestResource <  Test::Unit::TestCase
   def test_creation
     @ranges = '["192.168.2.0/24", ["192.168.3.2", "192.168.3.9"]]'
     sut = IpResource.new(@ranges)
-    puts sut.ip_ranges
-    assert_equal Range, @ranges[0].class #fails cuase it is currently a String
-    assert_equal Range, @ranges[1].class #Fails cause it is caurrently an Array
-    assert_equal ip_ranges[0], ip_ranges["192.168.2.0..192.168.2.255"]
-    assert_equal ip_ranges[1], ip_ranges["192.168.3.2..192.168.3.9"]
-    # actually do this test
-    # ip_ranges should be an array with 2 entries.  Each entry is a ranges:
-    # 192.168.2.0..192.168.2.255
-    # and
-    # 192.168.3.2..192.168.3.9
+    output = sut.ip_ranges
+    assert_equal Range, output[0].class #fails cuase it is currently a String
+    assert_equal Range, output[1].class #Fails cause it is caurrently an Array
+    assert_equal IPAddr.new("192.168.2.0"), output[0].first
+    assert_equal IPAddr.new("192.168.2.255"), output[0].last
+    assert_equal IPAddr.new("192.168.3.2"), output[1].first
+    assert_equal IPAddr.new("192.168.3.9"), output[1].last
+
   end
   
 
