@@ -22,8 +22,8 @@ end
 class IpResource
   attr_reader :ip_ranges
   def initialize(json)
-    ranges = JSON.parse(json)
-    @ip_ranges = ranges.collect do |range|
+    resource = JSON.parse(json)
+    @ip_ranges = resource['ranges'].collect do |range|
       range.is_a?(String) ? IPAddr.new(range).to_range : IPAddr.new(range[0])..IPAddr.new(range[1])
     end
   end
