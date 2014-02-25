@@ -1,5 +1,12 @@
 require 'sinatra'
+require_relative 'ip_addr'
+require_relative 'file_store'
 
+# check file exists, otherwise create it with 
+
+# world = { ranges: [], used: [] }
+json_file = JsonStore.new
+resource = IpResource.new(json_file)
 
 get '/ranges' do
   Ip.all.to_json
@@ -14,11 +21,26 @@ get '/range/:id' do
   Ip.where(:id =>params['id']).first.to_json
 end
 
-get '/range/$range/(stephaniascomputer)' do
-  '192.168.2.3'
+get '/range/:range/:ip_entry' do
+  range = param['range']
+  ip_entry = param['ip_entry']
+  resource.lookup(ip)
 end
 
+
 # new host 
+post '/range/:range/:ip_entry' do
+  
+  resource = IpResource.new()
+  range = param['range']
+  ip_entry = param['ip_entry']
+  if resource.exists?(ip_entry)
+    entry = resource.lookup(ip) 
+  else
+    entry = IP.new(ip)
+  end
+end
+
 
 get '/range/$range/(newhost)' do
   #return empty - not found
