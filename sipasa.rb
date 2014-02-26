@@ -9,13 +9,13 @@ require_relative 'file_store'
 @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
 
 get '/pools' do
-  Ip.all.to_json
   format_response :json
   @pools.to_json
 end
 
 get '/pools/:id' do
-  Ip.where(:id =>params['id']).first.to_json
+  poolname = params['id']
+  @pools[poolname].to_json
 end
 
 get '/range/:range/:ip_entry' do
@@ -27,7 +27,6 @@ end
 
 # new host 
 post '/range/:range/:ip_entry' do
-  
   resource = IpResource.new()
   range = param['range']
   ip_entry = param['ip_entry']
