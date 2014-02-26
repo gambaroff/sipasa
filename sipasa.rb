@@ -21,7 +21,10 @@ get '/pools/:pool' do
   @json_file = JsonStore.new
   @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
   poolname = params['pool']
-  @pools[poolname].to_json
+  pool = @pools[poolname]
+  interfaces = pool.interfaces.map{|name, value| name}
+  pool.interfaces = interfaces
+  pool.to_json
 end
 
 get '/interfaces' do
@@ -37,7 +40,6 @@ get '/interfaces/:interface' do
   ip_entry = params['interface']
   @interfaces[ip_entry].to_json
 end
-
 
 get '/ips' do
   @json_file = JsonStore.new
