@@ -5,19 +5,16 @@ require_relative 'file_store'
 # check file exists, otherwise create it with 
 
 # world = { ranges: [], used: [] }
-json_file = JsonStore.new
-resource = IpResource.new(json_file)
+@json_file = JsonStore.new
+@pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
 
-get '/ranges' do
+get '/pools' do
   Ip.all.to_json
   format_response :json
-  '{
-    "webservers":"192.168.2.0/24",
-    "dbs":["192.168.5.2", "192.168.5.10"]
-  }'
+  @pools.to_json
 end
 
-get '/range/:id' do
+get '/pools/:id' do
   Ip.where(:id =>params['id']).first.to_json
 end
 
