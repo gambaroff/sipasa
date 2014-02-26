@@ -31,6 +31,13 @@ class IP
     @hosts = {}
     @interfaces = {}
   end
+  def to_json(*a)
+    {
+      'hosts' => @hosts,
+      'interfaces' => @interfaces
+    }.to_json(*a)
+  end
+
 end
 
 class Host
@@ -39,6 +46,12 @@ class Host
     @name = hostname
     @ips = {}
     @interfaces = {} 
+  end
+  def to_json(*a)
+    {
+      'ips' => @ips,
+      'interfaces' => @interfaces
+    }.to_json(*a)
   end
 end
 
@@ -84,12 +97,16 @@ class GraphFactory
             host =  Host.new(hostname)
             @hosts[hostname] = host
           end
+          host.ips[ip_addr] = ip
         end
         #do something with IP
         if @interfaces[interface] != nil
           raise "duplicate interfaces exist"
         end
-        @interfaces[interface] = Interface.new(interface, ip, entry['mac'], entry['type'], host, entry['requested'])
+        iface = Interface.new(interface, ip, entry['mac'], entry['type'], host, entry['requested'])
+        @interfaces[interface] = iface
+        ip.interfaces[interface] = iface
+        ip.hosts[hostname] = host
       end
       pool.interfaces = @interfaces
       @pools[poolname] = pool
