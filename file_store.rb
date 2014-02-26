@@ -1,4 +1,6 @@
 class JsonStore
+  # if file doesnt exist, start it with : world = { ranges: [], used: [] }
+
   def initialize(filename = "ipworld.json")
     @datastore = filename
   end
