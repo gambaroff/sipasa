@@ -49,14 +49,14 @@ class Interface
     @name, @ip, @mac, @type, @host, @requested_time = name, ip, mac, type, host, requested_time
   end
   def to_json(*a)
-    {@name => {
+    hash = {
       'ip_addr' => @ip.ipaddr.to_s,
-      'interfaces' => @interfaces,
       'mac' => @mac,
       'type' => @type,
-      'host' => @host.name,
       'requested' => @requested_time
-    }}.to_json(*a)
+    }
+    hash['host'] = @host.name if @host != nil
+    hash.to_json(*a)
   end
 end
 
@@ -67,7 +67,8 @@ class GraphFactory
     @interfaces = {}
     @ips = {}  
     @hosts = {}
-    @pools = resource['pools'].collect do |poolname, poolentries|
+    @pools = {} 
+    resource['pools'].each do |poolname, poolentries|
       pool = Pool.new(poolname, poolentries['range'])
       poolentries['interfaces'].each do |interface, entry|
         ip_addr=entry['ip_addr']
@@ -88,20 +89,13 @@ class GraphFactory
         if @interfaces[interface] != nil
           raise "duplicate interfaces exist"
         end
-        @interfaces[interface] = Interface.new(interface, ip, entry['mac'], entry['type'], host, entry['requested_time'])
+        @interfaces[interface] = Interface.new(interface, ip, entry['mac'], entry['type'], host, entry['requested'])
       end
       pool.interfaces = @interfaces
-      {poolname => pool}
+      @pools[poolname] = pool
     end
     return @pools, @interfaces, @ips, @hosts
   end
   
-  def write(pools)
-    jsontext = '{"pools"=> ' 
-    pools.each do |poolname,pool| 
-      jsontext += '"' + poolname + '": ' + pool.to_json + "," 
-      end
-    jsontext += '}'
-  end
-  
+
 end
