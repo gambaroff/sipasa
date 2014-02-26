@@ -18,16 +18,15 @@ class TestResource <  Test::Unit::TestCase
      }}'
     factory = GraphFactory.new
     output, @interfaces, @ips, @hosts = factory.read(@input)
-    output = @pools
-    p @pools
     first = output['first']
     second = output['second']
     assert_equal Pool, first.class #fails cuase it is currently a String
+    assert_equal Range, first.range.class #fails cause it is caurrently an Array
     assert_equal Range, second.range.class #fails cause it is caurrently an Array
-    assert_equal IPAddr.new("192.168.2.0"), output[0].range.first
-    assert_equal IPAddr.new("192.168.2.255"), output[0].range.last
-    assert_equal IPAddr.new("192.168.3.2"), output[1].range.first
-    assert_equal IPAddr.new("192.168.3.9"), output[1].range.last
+    assert_equal IPAddr.new("192.168.2.0"), first.range.first
+    assert_equal IPAddr.new("192.168.2.255"), first.range.last
+    assert_equal IPAddr.new("192.168.3.2"), second.range.first
+    assert_equal IPAddr.new("192.168.3.9"), second.range.last
   end
   
   def test_entry_creation
