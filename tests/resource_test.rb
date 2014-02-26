@@ -85,7 +85,7 @@ class TestResource <  Test::Unit::TestCase
     factory = GraphFactory.new
     @pools, @interfaces, @ips, @hosts = factory.read(@input)
     assert_equal JSON.parse(@input), {'pools' => JSON.parse(@pools.to_json)}
-    #assert_equal @input, factory.write(@pools)
-    #puts sut.hosts # should have cheddarcheese with 3 interfaces
+    #todo, fill in what this should return.  then do the same for interfaces
+    # assert_equal ["cheddar"], @ips["192.168.2.4"].hosts 
   end
 end
