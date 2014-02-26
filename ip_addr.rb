@@ -1,32 +1,35 @@
 require 'json'
 require 'ipaddr'
 
-#ip_range = IPAddr.new("192.168.2.0")..IPAddr.new("192.168.2.6")
-
-world = { ranges: [], used: [] }
 class IPGenerator
-  def initialize(world)
-    @range = world.each{
-
-    }
-    @used
+  #todo
+  def initialize()
   end
 end
 
 class Pool
   attr_reader :name, :range
+  attr_accessor :interfaces
   def initialize(name, ip_addr_range)
     @name = name
+    @range_text = ip_addr_range
     @range = ip_addr_range.is_a?(String) ? IPAddr.new(ip_addr_range).to_range : IPAddr.new(ip_addr_range[0])..IPAddr.new(ip_addr_range[1])
+    @interfaces = {}
+  end
+  def to_json(*a)
+     {
+      'range' => @range_text,
+      'interfaces' => @interfaces
+    }.to_json(*a)
   end
 end
 
 class IP
-  attr_accessor :hosts, :interfaces
+  attr_accessor :ipaddr, :hosts, :interfaces
   def initialize(ipaddr)
     @ipaddr = IPAddr.new(ipaddr)
-    @hosts = []
-    @interfaces = []
+    @hosts = {}
+    @interfaces = {}
   end
 end
 
@@ -34,8 +37,8 @@ class Host
   attr_accessor :name, :ips, :interfaces
   def initialize(hostname)
     @name = hostname
-    @ips = []
-    @interfaces = [] 
+    @ips = {}
+    @interfaces = {} 
   end
 end
 
@@ -44,6 +47,16 @@ class Interface
   attr_reader :name, :ip, :mac, :type, :host, :requested_time
   def initialize(name, ip, mac, type, host, requested_time)
     @name, @ip, @mac, @type, @host, @requested_time = name, ip, mac, type, host, requested_time
+  end
+  def to_json(*a)
+    {@name => {
+      'ip_addr' => @ip.ipaddr.to_s,
+      'interfaces' => @interfaces,
+      'mac' => @mac,
+      'type' => @type,
+      'host' => @host.name,
+      'requested' => @requested_time
+    }}.to_json(*a)
   end
 end
 
@@ -77,9 +90,18 @@ class GraphFactory
         end
         @interfaces[interface] = Interface.new(interface, ip, entry['mac'], entry['type'], host, entry['requested_time'])
       end
-      pool
+      pool.interfaces = @interfaces
+      {poolname => pool}
     end
     return @pools, @interfaces, @ips, @hosts
   end
-
+  
+  def write(pools)
+    jsontext = '{"pools"=> ' 
+    pools.each do |poolname,pool| 
+      jsontext += '"' + poolname + '": ' + pool.to_json + "," 
+      end
+    jsontext += '}'
+  end
+  
 end

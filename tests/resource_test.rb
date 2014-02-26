@@ -44,8 +44,9 @@ class TestResource <  Test::Unit::TestCase
               "requested": "Tue Feb 25 14:57:35 PST 2014"
             }
           }}}}'
-    @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@input)
-    assert_equal @interfaces, "192.168.2.0 : 192.168.2.1" 
+    factory = GraphFactory.new
+    @pools, @interfaces, @ips, @hosts = factory.read(@input)
+    assert_equal @input, factory.write(@pools)
     #puts sut.ip_addresses #should have 192.168.2.1, 192.168.2.2
   end
   
@@ -77,7 +78,10 @@ class TestResource <  Test::Unit::TestCase
               "requested": "Tue Feb 25 14:57:35 PST 2014"
             }
           }}}}'
-    @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@input)
+    factory = GraphFactory.new
+    @pools, @interfaces, @ips, @hosts = factory.read(@input)
+    p @pools.to_json
+    #assert_equal @input, factory.write(@pools)
     #puts sut.hosts # should have cheddarcheese with 3 interfaces
   end
 end
