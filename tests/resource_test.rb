@@ -5,7 +5,8 @@ require_relative("../ip_addr")
 class TestResource <  Test::Unit::TestCase
   
   def test_range_creation
-    @ranges = '{"pools": {
+    @input = '{
+    "pools": {
       "first":{
         "range":"192.168.2.0/24", 
         "interfaces":{}
@@ -15,10 +16,14 @@ class TestResource <  Test::Unit::TestCase
         "interfaces":{}
        }
      }}'
-    @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@ranges)
+    factory = GraphFactory.new
+    output, @interfaces, @ips, @hosts = factory.read(@input)
     output = @pools
-    assert_equal Range, output[0].range.class #fails cuase it is currently a String
-    assert_equal Range, output[1].range.class #Fails cause it is caurrently an Array
+    p @pools
+    first = output['first']
+    second = output['second']
+    assert_equal Pool, first.class #fails cuase it is currently a String
+    assert_equal Range, second.range.class #fails cause it is caurrently an Array
     assert_equal IPAddr.new("192.168.2.0"), output[0].range.first
     assert_equal IPAddr.new("192.168.2.255"), output[0].range.last
     assert_equal IPAddr.new("192.168.3.2"), output[1].range.first
@@ -46,7 +51,7 @@ class TestResource <  Test::Unit::TestCase
           }}}}'
     factory = GraphFactory.new
     @pools, @interfaces, @ips, @hosts = factory.read(@input)
-    assert_equal @input, factory.write(@pools)
+    assert_equal JSON.parse(@input), {'pools' => JSON.parse(@pools.to_json)}
     #puts sut.ip_addresses #should have 192.168.2.1, 192.168.2.2
   end
   
@@ -80,7 +85,7 @@ class TestResource <  Test::Unit::TestCase
           }}}}'
     factory = GraphFactory.new
     @pools, @interfaces, @ips, @hosts = factory.read(@input)
-    p @pools.to_json
+    assert_equal JSON.parse(@input), {'pools' => JSON.parse(@pools.to_json)}
     #assert_equal @input, factory.write(@pools)
     #puts sut.hosts # should have cheddarcheese with 3 interfaces
   end
