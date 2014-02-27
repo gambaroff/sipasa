@@ -9,12 +9,13 @@ end
 
 class Pool
   attr_reader :name, :range
-  attr_accessor :interfaces
+  attr_accessor :interfaces, :notes
   def initialize(name, ip_addr_range)
     @name = name
     @range_text = ip_addr_range
     @range = ip_addr_range.is_a?(String) ? IPAddr.new(ip_addr_range).to_range : IPAddr.new(ip_addr_range[0])..IPAddr.new(ip_addr_range[1])
     @interfaces = {}
+    @notes = ""
   end
   def to_json(*a)
      {
@@ -81,7 +82,7 @@ class GraphFactory
     @ips = {}  
     @hosts = {}
     @pools = {} 
-    resource['pools'].each do |poolname, poolentries|
+    resource.each do |poolname, poolentries|
       pool = Pool.new(poolname, poolentries['range'])
       poolentries['interfaces'].each do |interface, entry|
         ip_addr=entry['ip_addr']
