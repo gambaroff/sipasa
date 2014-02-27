@@ -54,12 +54,13 @@ end
 
 put '/pools/:pool/:interface' do
   poolname = params['pool']
-  interface = params['interface']
+  interfacename = params['interface']
   input = JSON.parse(request.body.read)
   @json_file = JsonStore.new
   @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
-  before = @pools.to_json
-  @pools[poolname] = Interface.new(poolname, input['range'])
+  @pools[poolname].provision(interfacename, params["mac"], params["type"], params["host"])
+  
+  
   @json_file.store(@pools)
   status 201
 end

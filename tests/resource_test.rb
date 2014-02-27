@@ -150,8 +150,8 @@ class TestResource <  Test::Unit::TestCase
     factory = GraphFactory.new
     @pools, @interfaces, @ips, @hosts = factory.read(@input)
     interfacename = "manchegocheese.example.com"
-    interfacecreate = '{"mac":"12:34:56:78:99","type":"primary","host":"manchegocheese"}'
     poolname = "first"
+    interfacecreate = '{"mac":"12:34:56:78:99","type":"primary","host":"manchegocheese"}'
     params = JSON.parse(interfacecreate)
     @pools[poolname].provision(interfacename, params["mac"], params["type"], params["host"], requested_time="Thu Feb 27 09:27:25 PST 2014")
     @expected = '{
@@ -214,4 +214,29 @@ class TestResource <  Test::Unit::TestCase
     assert_equal nil, pool.first_available
   end
 
+  def test_pool_interface_exists
+    @input = '{
+      "first":{
+        "range":"192.168.2.0/24", 
+        "interfaces":{
+           "creamcheese.example.com": {
+              "ip_addr": "192.168.2.1", 
+              "mac": "12:34:56:78:90",
+              "type": "primary",
+              "requested": "Tue Feb 25 14:57:35 PST 2014"
+            }
+          }
+      }}'
+    factory = GraphFactory.new
+    @pools, @interfaces, @ips, @hosts = factory.read(@input)
+    poolname = "first"
+    interfacename = "creamcheese.example.com"
+    interfacecreate = '{"mac":"12:34:56:78:99","type":"primary","host":"manchegocheese"}'
+    params = JSON.parse(interfacecreate)
+    interface_created = @pools[poolname].provision(interfacename, params["mac"], params["type"], params["host"], requested_time="Thu Feb 27 09:27:25 PST 2014")
+    assert_equal "192.168.2.1", interface_created.ip.ipaddr.to_s
+    #don't update anything. this will likely change in the future to make it more rest-y.
+    assert_equal JSON.parse(@input), JSON.parse(@pools.to_json)
+  end
+  
 end

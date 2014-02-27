@@ -19,12 +19,17 @@ class Pool
     @notes = ""
   end
   def provision(name, mac, type, hostname, requested_time=Time.new)
+    interface = @interfaces[name]
+    if(interface != nil)
+      return interface
+    end
     ipaddr=first_available.to_s
     ip=IP.new(ipaddr)
     host=Host.new(hostname)
     interface = Interface.new(name, ip, mac, type, requested_time, host=host)
     @ips[ipaddr] = ip
     @interfaces[name] = interface
+    return interface
   end
   def to_json(*a)
      {
