@@ -233,7 +233,8 @@ class TestResource <  Test::Unit::TestCase
     interfacename = "creamcheese.example.com"
     interfacecreate = '{"mac":"12:34:56:78:99","type":"primary","host":"manchegocheese"}'
     params = JSON.parse(interfacecreate)
-    interface_created = @pools[poolname].provision(interfacename, params["mac"], params["type"], params["host"], requested_time="Thu Feb 27 09:27:25 PST 2014")
+    interface_created, is_new = @pools[poolname].provision(interfacename, params["mac"], params["type"], params["host"], requested_time="Thu Feb 27 09:27:25 PST 2014")
+    assert_equal false, is_new
     assert_equal "192.168.2.1", interface_created.ip.ipaddr.to_s
     #don't update anything. this will likely change in the future to make it more rest-y.
     assert_equal JSON.parse(@input), JSON.parse(@pools.to_json)

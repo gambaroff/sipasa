@@ -21,7 +21,7 @@ class Pool
   def provision(name, mac, type, hostname, requested_time=Time.new)
     interface = @interfaces[name]
     if(interface != nil)
-      return interface
+      return interface, false
     end
     ipaddr=first_available.to_s
     ip=IP.new(ipaddr)
@@ -29,7 +29,7 @@ class Pool
     interface = Interface.new(name, ip, mac, type, requested_time, host=host)
     @ips[ipaddr] = ip
     @interfaces[name] = interface
-    return interface
+    return interface, true
   end
   def to_json(*a)
      {
