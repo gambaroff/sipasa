@@ -51,7 +51,7 @@ get '/interfaces/:interface' do
   ip_entry = params['interface']
   @interfaces[ip_entry].to_json
 end
-=begin
+
 put '/pools/:pool/:interface' do
   poolname = params['pool']
   interface = params['interface']
@@ -59,11 +59,11 @@ put '/pools/:pool/:interface' do
   @json_file = JsonStore.new
   @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
   before = @pools.to_json
-  @pools[poolname] = Pool.new(poolname, input['range'])
+  @pools[poolname] = Interface.new(poolname, input['range'])
   @json_file.store(@pools)
   status 201
 end
-=end
+
 get '/ips' do
   @json_file = JsonStore.new
   @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
