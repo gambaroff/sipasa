@@ -17,6 +17,17 @@ get '/pools' do
   ranges.to_json
 end
 
+put '/pools/:pool' do
+  poolname = params['pool']
+  input = JSON.parse(request.body.read)
+  @json_file = JsonStore.new
+  @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
+  before = @pools.to_json
+  @pools[poolname] = Pool.new(poolname, input['range'])
+  @json_file.store(@pools)
+  status 201
+end
+
 get '/pools/:pool' do
   @json_file = JsonStore.new
   @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
@@ -39,6 +50,22 @@ get '/interfaces/:interface' do
   @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
   ip_entry = params['interface']
   @interfaces[ip_entry].to_json
+end
+
+put '/pools/:pool/:interface' do
+  poolname = params['pool']
+  interfacename = params['interface']
+  input = JSON.parse(request.body.read)
+  @json_file = JsonStore.new
+  @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
+  interface, is_new = @pools[poolname].provision(interfacename, input["mac"], input["type"], input["host"])
+  if is_new
+    @json_file.store(@pools)
+    status 201
+  else
+    status 200
+  end
+  interface.to_json
 end
 
 get '/ips' do
