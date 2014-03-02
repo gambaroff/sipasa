@@ -1,12 +1,6 @@
 require 'json'
 require 'ipaddr'
 
-class IPGenerator
-  #todo
-  def initialize()
-  end
-end
-
 class Pool
   attr_reader :name, :range
   attr_accessor :interfaces, :notes, :ips
@@ -100,47 +94,47 @@ end
 class GraphFactory 
   def read(json)
     resource = JSON.parse(json)
-    @all_interfaces = {}
-    @all_ips = {}  
-    @hosts = {}
-    @pools = {} 
+    all_interfaces = {}
+    all_ips = {}  
+    hosts = {}
+    pools = {} 
     resource.each do |poolname, poolentries|
-      @interfaces = {}
-      @ips = {}
+      interfaces = {}
+      ips = {}
       #todo Pool json parsing so we do more in constructors and/or methods
       pool = Pool.new(poolname, poolentries['range'])
       poolentries['interfaces'].each do |interface, entry|
         ip_addr=entry['ip_addr']
-        ip = @ips[ip_addr]
+        ip = ips[ip_addr]
         if ip == nil
           ip =  IP.new(ip_addr)
-          @ips[ip_addr] = ip
+          ips[ip_addr] = ip
         end
         hostname = entry['host']
         if hostname != nil
-          host = @hosts[hostname]
+          host = hosts[hostname]
           if host == nil
             host =  Host.new(hostname)
-            @hosts[hostname] = host
+            hosts[hostname] = host
           end
           host.ips[ip_addr] = ip
         end
         #do something with IP
-        if @all_interfaces[interface] != nil
+        if all_interfaces[interface] != nil
           raise "duplicate interfaces exist"
         end
         iface = Interface.new(interface, ip, entry['mac'], entry['type'], entry['requested'], host)
-        @interfaces[interface] = iface
-        @all_interfaces[interface] = iface
+        interfaces[interface] = iface
+        all_interfaces[interface] = iface
         ip.interfaces[interface] = iface
         ip.hosts[hostname] = host
       end
-      pool.interfaces = @interfaces
-      pool.ips = @ips
-
-      @pools[poolname] = pool
+      pool.interfaces = interfaces
+      pool.ips = ips
+      all_ips.merge!(ips)
+      pools[poolname] = pool
     end
-    return @pools, @interfaces, @ips, @hosts
+    return pools, all_interfaces, all_ips, hosts
   end
   
 

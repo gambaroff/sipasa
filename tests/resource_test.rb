@@ -5,7 +5,7 @@ require_relative("../ip_addr")
 class TestResource <  Test::Unit::TestCase
   
   def test_range_creation
-    @input = '{
+    input = '{
       "first":{
         "range":"192.168.2.0/24", 
         "interfaces":{}
@@ -16,7 +16,7 @@ class TestResource <  Test::Unit::TestCase
        }
      }'
     factory = GraphFactory.new
-    output, @interfaces, @ips, @hosts = factory.read(@input)
+    output, interfaces, ips, hosts = factory.read(input)
     first = output['first']
     second = output['second']
     assert_equal Pool, first.class #fails cuase it is currently a String
@@ -29,7 +29,7 @@ class TestResource <  Test::Unit::TestCase
   end
   
   def test_entry_creation
-    @input = '{
+    input = '{
         "first":{
           "range": "192.168.2.0/24", 
           "interfaces": {
@@ -47,13 +47,13 @@ class TestResource <  Test::Unit::TestCase
             }
           }}}'
     factory = GraphFactory.new
-    @pools, @interfaces, @ips, @hosts = factory.read(@input)
-    assert_equal JSON.parse(@input), JSON.parse(@pools.to_json)
+    pools, interfaces, ips, hosts = factory.read(input)
+    assert_equal JSON.parse(input), JSON.parse(pools.to_json)
     #puts sut.ip_addresses #should have 192.168.2.1, 192.168.2.2
   end
   
   def test_host_creation
-    @input = '{
+    input = '{
         "first":{
           "range": "192.168.2.0/24", 
           "interfaces": {
@@ -80,15 +80,17 @@ class TestResource <  Test::Unit::TestCase
             }
           }}}'
     factory = GraphFactory.new
-    @pools, @interfaces, @ips, @hosts = factory.read(@input)
-    assert_equal JSON.parse(@input), JSON.parse(@pools.to_json)
+    pools, interfaces, ips, hosts = factory.read(input)
+    assert_equal JSON.parse(input), JSON.parse(pools.to_json)
+    assert_equal 1, hosts.length
+    assert_equal "cheddarcheese", hosts.keys[0]
     #todo, fill in what this should return.  then do the same for interfaces
-    # assert_equal ["cheddar"], @ips["192.168.2.4"].hosts 
+    # assert_equal ["cheddar"], ips["192.168.2.4"].hosts 
   end
   
   
   def test_pool_contains_hosts_interfaces_for_itself
-    @input = '{
+    input = '{
         "first":{
           "range": "192.168.2.0/24", 
           "interfaces": {
@@ -113,15 +115,15 @@ class TestResource <  Test::Unit::TestCase
           }}
     }'
     factory = GraphFactory.new
-    @pools, @interfaces, @ips, @hosts = factory.read(@input)
-    assert_equal 1, @pools['first'].interfaces.length
-    assert_equal 1, @pools['second'].interfaces.length
+    pools, interfaces, ips, hosts = factory.read(input)
+    assert_equal 1, pools['first'].interfaces.length
+    assert_equal 1, pools['second'].interfaces.length
     #todo, fill in what this should return.  then do the same for interfaces
-    # assert_equal ["cheddar"], @ips["192.168.2.4"].hosts 
+    # assert_equal ["cheddar"], ips["192.168.2.4"].hosts 
   end
   
   def test_adding_interface
-   @input = '{
+   input = '{
         "first":{
           "range": ["192.168.2.3", "192.168.2.9"],
           "interfaces": {
@@ -148,13 +150,14 @@ class TestResource <  Test::Unit::TestCase
             }
           }}}'
     factory = GraphFactory.new
-    @pools, @interfaces, @ips, @hosts = factory.read(@input)
+    pools, interfaces, ips, hosts = factory.read(input)
+    assert_equal 2, ips.length
     interfacename = "manchegocheese.example.com"
     poolname = "first"
     interfacecreate = '{"mac":"12:34:56:78:99","type":"primary","host":"manchegocheese"}'
     params = JSON.parse(interfacecreate)
-    @pools[poolname].provision(interfacename, params["mac"], params["type"], params["host"], requested_time="Thu Feb 27 09:27:25 PST 2014")
-    @expected = '{
+    pools[poolname].provision(interfacename, params["mac"], params["type"], params["host"], requested_time="Thu Feb 27 09:27:25 PST 2014")
+    expected = '{
         "first":{
           "range": ["192.168.2.3", "192.168.2.9"], 
           "interfaces": {
@@ -187,8 +190,8 @@ class TestResource <  Test::Unit::TestCase
               "requested": "Thu Feb 27 09:27:25 PST 2014"
             }
           }}}'
-    assert_equal JSON.parse(@expected), JSON.parse(@pools.to_json)
-
+    assert_equal JSON.parse(expected), JSON.parse(pools.to_json)
+    #TODO make this work assert_equal 3, ips.length
   end
   
   def test_pool_starting_ip
@@ -215,7 +218,7 @@ class TestResource <  Test::Unit::TestCase
   end
 
   def test_pool_interface_exists
-    @input = '{
+    input = '{
       "first":{
         "range":"192.168.2.0/24", 
         "interfaces":{
@@ -228,16 +231,16 @@ class TestResource <  Test::Unit::TestCase
           }
       }}'
     factory = GraphFactory.new
-    @pools, @interfaces, @ips, @hosts = factory.read(@input)
+    pools, interfaces, ips, hosts = factory.read(input)
     poolname = "first"
     interfacename = "creamcheese.example.com"
     interfacecreate = '{"mac":"12:34:56:78:99","type":"primary","host":"manchegocheese"}'
     params = JSON.parse(interfacecreate)
-    interface_created, is_new = @pools[poolname].provision(interfacename, params["mac"], params["type"], params["host"], requested_time="Thu Feb 27 09:27:25 PST 2014")
+    interface_created, is_new = pools[poolname].provision(interfacename, params["mac"], params["type"], params["host"], requested_time="Thu Feb 27 09:27:25 PST 2014")
     assert_equal false, is_new
     assert_equal "192.168.2.1", interface_created.ip.ipaddr.to_s
     #don't update anything. this will likely change in the future to make it more rest-y.
-    assert_equal JSON.parse(@input), JSON.parse(@pools.to_json)
+    assert_equal JSON.parse(input), JSON.parse(pools.to_json)
   end
   
 end

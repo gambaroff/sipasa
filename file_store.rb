@@ -5,7 +5,7 @@ class JsonStore
     @datastore = filename
     if !File.exist?(filename)
       empty = File.open(@datastore, "w")
-      empty.puts '{"pools": {}}'
+      empty.puts '{}'
       empty.close
     end
   end

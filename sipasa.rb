@@ -89,3 +89,26 @@ get '/ips/:ip' do
   ip.hosts = hosts
   ip.to_json
 end
+
+
+get '/hosts' do
+  @json_file = JsonStore.new
+  @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
+  @ips.map{|host, value|name}.to_json
+end
+
+get '/hosts/:host' do
+  @json_file = JsonStore.new
+  @pools, @interfaces, @ips, @hosts = GraphFactory.new.read(@json_file.retrieve())
+  hostname = params['host']
+  host = @hosts[hostname]
+=begin  
+  interfaces = ip.interfaces.map do |name, value|
+    name
+  end
+  hosts = ip.hosts.map do |name, value|
+    name
+  end
+=end
+  host.to_json
+end
