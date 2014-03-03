@@ -16,12 +16,12 @@ class TestResource <  Test::Unit::TestCase
        }
      }'
     factory = GraphFactory.new
-    output, interfaces, ips, hosts = factory.read(input)
-    first = output['first']
-    second = output['second']
-    assert_equal Pool, first.class #fails cuase it is currently a String
-    assert_equal Range, first.range.class #fails cause it is caurrently an Array
-    assert_equal Range, second.range.class #fails cause it is caurrently an Array
+    pools, interfaces, ips, hosts = factory.read(input)
+    first = pools['first']
+    second = pools['second']
+    assert_equal Pool, first.class 
+    assert_equal Range, first.range.class 
+    assert_equal Range, second.range.class
     assert_equal IPAddr.new("192.168.2.0"), first.range.first
     assert_equal IPAddr.new("192.168.2.255"), first.range.last
     assert_equal IPAddr.new("192.168.3.2"), second.range.first
@@ -84,8 +84,6 @@ class TestResource <  Test::Unit::TestCase
     assert_equal JSON.parse(input), JSON.parse(pools.to_json)
     assert_equal 1, hosts.length
     assert_equal "cheddarcheese", hosts.keys[0]
-    #todo, fill in what this should return.  then do the same for interfaces
-    # assert_equal ["cheddar"], ips["192.168.2.4"].hosts 
   end
   
   
@@ -118,8 +116,6 @@ class TestResource <  Test::Unit::TestCase
     pools, interfaces, ips, hosts = factory.read(input)
     assert_equal 1, pools['first'].interfaces.length
     assert_equal 1, pools['second'].interfaces.length
-    #todo, fill in what this should return.  then do the same for interfaces
-    # assert_equal ["cheddar"], ips["192.168.2.4"].hosts 
   end
   
   def test_adding_interface

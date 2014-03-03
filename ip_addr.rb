@@ -14,13 +14,11 @@ class Pool
   end
   def provision(name, mac, type, hostname, requested_time=Time.new)
     interface = @interfaces[name]
-    if(interface != nil)
-      return interface, false
-    end
+    return interface, false if interface 
     ipaddr=first_available.to_s
-    ip=IP.new(ipaddr)
-    host=Host.new(hostname)
-    interface = Interface.new(name, ip, mac, type, requested_time, host=host)
+    ip = IP.new(ipaddr)
+    host = Host.new(hostname)
+    interface = Interface.new(name, ip, mac, type, requested_time, host = host)
     @ips[ipaddr] = ip
     @interfaces[name] = interface
     return interface, true
@@ -31,6 +29,9 @@ class Pool
       'interfaces' => @interfaces
     }.to_json(*a)
   end
+  
+
+  
   def first_available
     for ip in @range
       if @ips[ip.to_s] == nil
@@ -85,7 +86,7 @@ class Interface
       'type' => @type,
       'requested' => @requested_time
     }
-    hash['host'] = @host.name if @host != nil
+    hash['host'] = @host.name if @host
     hash.to_json(*a)
   end
 end
@@ -105,22 +106,17 @@ class GraphFactory
       pool = Pool.new(poolname, poolentries['range'])
       poolentries['interfaces'].each do |interface, entry|
         ip_addr=entry['ip_addr']
-        ip = ips[ip_addr]
-        if ip == nil
-          ip =  IP.new(ip_addr)
-          ips[ip_addr] = ip
-        end
+        ip = ips[ip_addr]      
+        ip =  IP.new(ip_addr) unless ip 
+        ips[ip_addr] = ip
         hostname = entry['host']
-        if hostname != nil
-          host = hosts[hostname]
-          if host == nil
-            host =  Host.new(hostname)
-            hosts[hostname] = host
-          end
+        if hostname 
+          host =  Host.new(hostname) unless host 
+          hosts[hostname] = host
           host.ips[ip_addr] = ip
         end
         #do something with IP
-        if all_interfaces[interface] != nil
+        if all_interfaces[interface] 
           raise "duplicate interfaces exist"
         end
         iface = Interface.new(interface, ip, entry['mac'], entry['type'], entry['requested'], host)
