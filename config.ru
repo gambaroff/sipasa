@@ -2,5 +2,5 @@ require 'rubygems'
 require 'bundler'
 
 Bundler.require
-require './sipasa'
+require './rest_interface'
 run Sinatra::Application

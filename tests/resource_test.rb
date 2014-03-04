@@ -16,12 +16,12 @@ class TestResource <  Test::Unit::TestCase
        }
      }'
     factory = GraphFactory.new
-    pools, interfaces, ips, hosts = factory.read(input)
-    first = pools['first']
-    second = pools['second']
-    assert_equal Pool, first.class 
-    assert_equal Range, first.range.class 
-    assert_equal Range, second.range.class
+    output, interfaces, ips, hosts = factory.read(input)
+    first = output['first']
+    second = output['second']
+    assert_equal Pool, first.class #fails cuase it is currently a String
+    assert_equal Range, first.range.class #fails cause it is caurrently an Array
+    assert_equal Range, second.range.class #fails cause it is caurrently an Array
     assert_equal IPAddr.new("192.168.2.0"), first.range.first
     assert_equal IPAddr.new("192.168.2.255"), first.range.last
     assert_equal IPAddr.new("192.168.3.2"), second.range.first
@@ -84,6 +84,8 @@ class TestResource <  Test::Unit::TestCase
     assert_equal JSON.parse(input), JSON.parse(pools.to_json)
     assert_equal 1, hosts.length
     assert_equal "cheddarcheese", hosts.keys[0]
+    #todo, fill in what this should return.  then do the same for interfaces
+    # assert_equal ["cheddar"], ips["192.168.2.4"].hosts 
   end
   
   
@@ -116,6 +118,8 @@ class TestResource <  Test::Unit::TestCase
     pools, interfaces, ips, hosts = factory.read(input)
     assert_equal 1, pools['first'].interfaces.length
     assert_equal 1, pools['second'].interfaces.length
+    #todo, fill in what this should return.  then do the same for interfaces
+    # assert_equal ["cheddar"], ips["192.168.2.4"].hosts 
   end
   
   def test_adding_interface
@@ -191,19 +195,19 @@ class TestResource <  Test::Unit::TestCase
   end
   
   def test_pool_starting_ip
-    pool = Pool.new("dummy", ["192.168.2.3", "192.168.2.9"])
+    pool = Pool.new("dummy", ["192.168.2.3", "192.168.2.9"], {})
     assert_equal "192.168.2.3", pool.first_available.to_s
   end
   
   def test_pool_skips_existing
-    pool = Pool.new("dummy", ["192.168.2.3", "192.168.2.9"])
+    pool = Pool.new("dummy", ["192.168.2.3", "192.168.2.9"], {})
     first="192.168.2.3"
     pool.ips[first] = IP.new(first)
     assert_equal "192.168.2.4", pool.first_available.to_s
   end
   
   def test_pool_full
-    pool = Pool.new("dummy", ["192.168.2.3", "192.168.2.5"])
+    pool = Pool.new("dummy", ["192.168.2.3", "192.168.2.5"], {})
     first="192.168.2.3"
     pool.ips[first] = IP.new(first)
     second="192.168.2.4"

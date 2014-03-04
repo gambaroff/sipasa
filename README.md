@@ -1,7 +1,3 @@
-Let's say you wanted to build your own DHCP server one thing you gonna need to do is proide a way to
-Sipasa does this part for you
-Sipasa is Stephania's IP Address Super Allocator!
-
 Curl's an easy way to operate with this bad boy.
 
 Run in dev
@@ -44,4 +40,15 @@ curl -XGET http://127.0.0.1:9292/hosts
 Show an interface:
 curl -XGET http://127.0.0.1:9292/hosts/manchegocheese
 
+You can create a pool with gateway and/or netmask:
+curl -XPUT http://127.0.0.1:9292/pools/second -d @-
+{"range": ["10.10.10.2", "10.10.10.6"], "netmask": "255.255.255.0", "gateway": "10.10.10.1"}
+^D
+If your pool has a gateway/netmask, interfaces from that pool will get those returned
+curl -XPUT http://127.0.0.1:9292/pools/second/mahchegocheese.example.com -d @-
+{"mac":"12:34:56:78:99","type":"primary","host":"manchegocheese"}
+^D
+curl -XGET http://127.0.0.1:9292/interfaces/cheddarcheese.example.com
+
+For comprehensive & up to date details see tests/rest_test.rb
 

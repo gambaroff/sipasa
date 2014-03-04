@@ -2,19 +2,24 @@ require 'json'
 require 'ipaddr'
 
 class Pool
-  attr_reader :name, :range
-  attr_accessor :interfaces, :notes, :ips
-  def initialize(name, ip_addr_range)
+  attr_reader :name, :range, :netmask, :gateway
+  attr_accessor :interfaces, :notes, :ips, :immutable
+  def initialize(name, ip_addr_range, options)
     @name = name
     @range_text = ip_addr_range
     @range = ip_addr_range.is_a?(String) ? IPAddr.new(ip_addr_range).to_range : IPAddr.new(ip_addr_range[0])..IPAddr.new(ip_addr_range[1])
     @interfaces = {}
     @ips = {}
     @notes = ""
+    @immutable = options[:immutable]
+    @netmask = options[:netmask]
+    @gateway = options[:gateway]
   end
-  def provision(name, mac, type, hostname, requested_time=Time.new)
+
+  def provision(name, mac, type, hostname, requested_time=Time.now)
+    return nil, false if @immutable
     interface = @interfaces[name]
-    return interface, false if interface 
+    return interface, false if interface
     ipaddr=first_available.to_s
     ip = IP.new(ipaddr)
     host = Host.new(hostname)
@@ -23,19 +28,22 @@ class Pool
     @interfaces[name] = interface
     return interface, true
   end
+
   def to_json(*a)
-     {
+    output = {
       'range' => @range_text,
       'interfaces' => @interfaces
-    }.to_json(*a)
+    }
+    output['immutable'] = true if @immutable
+    output['netmask'] = @netmask if @netmask
+    output['gateway'] = @gateway if @gateway
+    output.to_json(*a)
   end
-  
 
-  
   def first_available
     for ip in @range
       if @ips[ip.to_s] == nil
-        return ip
+      return ip
       end
     end
     return nil
@@ -49,6 +57,7 @@ class IP
     @hosts = {}
     @interfaces = {}
   end
+
   def to_json(*a)
     {
       'hosts' => @hosts,
@@ -63,22 +72,27 @@ class Host
   def initialize(hostname)
     @name = hostname
     @ips = {}
-    @interfaces = {} 
+    @interfaces = {}
   end
+
   def to_json(*a)
-    {
-      'ips' => @ips,
-      'interfaces' => @interfaces
-    }.to_json(*a)
+    output = {
+      'ips' => @ips.collect{|ipaddr, ip| ipaddr},
+      'interfaces' => @interfaces.collect{|ifname, interface| ifname}
+    }
+    output.to_json(*a)
   end
 end
 
-
 class Interface
   attr_reader :name, :ip, :mac, :type, :host, :requested_time
+  attr_accessor :gateway, :netmask
   def initialize(name, ip, mac, type, requested_time, host=nil)
     @name, @ip, @mac, @type, @host, @requested_time = name, ip, mac, type, host, requested_time
+    @gateway = nil
+    @netmask = nil
   end
+
   def to_json(*a)
     hash = {
       'ip_addr' => @ip.ipaddr.to_s,
@@ -87,36 +101,47 @@ class Interface
       'requested' => @requested_time
     }
     hash['host'] = @host.name if @host
+    hash['gateway'] = @gateway if @gateway
+    hash['netmask'] = @netmask if @netmask
     hash.to_json(*a)
   end
 end
 
-
-class GraphFactory 
+class GraphFactory
   def read(json)
     resource = JSON.parse(json)
     all_interfaces = {}
-    all_ips = {}  
+    all_ips = {}
     hosts = {}
-    pools = {} 
+    pools = {}
     resource.each do |poolname, poolentries|
       interfaces = {}
       ips = {}
       #todo Pool json parsing so we do more in constructors and/or methods
-      pool = Pool.new(poolname, poolentries['range'])
+      options = {
+        immutable: poolentries['immutable'],
+        netmask: poolentries['netmask'],
+        gateway: poolentries['gateway']        
+      }
+      pool = Pool.new(poolname, poolentries['range'], options)
       poolentries['interfaces'].each do |interface, entry|
         ip_addr=entry['ip_addr']
-        ip = ips[ip_addr]      
-        ip =  IP.new(ip_addr) unless ip 
-        ips[ip_addr] = ip
+        ip = ips[ip_addr]
+        if !ip
+          ip =  IP.new(ip_addr)
+          ips[ip_addr] = ip
+        end
         hostname = entry['host']
-        if hostname 
-          host =  Host.new(hostname) unless host 
-          hosts[hostname] = host
+        if hostname
+          host = hosts[hostname]
+          if ! host
+            host =  Host.new(hostname) unless host
+            hosts[hostname] = host
+          end
           host.ips[ip_addr] = ip
         end
-        #do something with IP
-        if all_interfaces[interface] 
+        # do something with IP
+        if all_interfaces[interface]
           raise "duplicate interfaces exist"
         end
         iface = Interface.new(interface, ip, entry['mac'], entry['type'], entry['requested'], host)
@@ -124,6 +149,9 @@ class GraphFactory
         all_interfaces[interface] = iface
         ip.interfaces[interface] = iface
         ip.hosts[hostname] = host
+        if hostname
+          hosts[hostname].interfaces[interface] = iface
+        end
       end
       pool.interfaces = interfaces
       pool.ips = ips
@@ -132,6 +160,5 @@ class GraphFactory
     end
     return pools, all_interfaces, all_ips, hosts
   end
-  
 
 end
