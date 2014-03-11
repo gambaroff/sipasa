@@ -127,14 +127,14 @@ class GraphFactory
       poolentries['interfaces'].each do |interface, entry|
         ip_addr=entry['ip_addr']
         ip = ips[ip_addr]
-        if !ip
+        unless ip
           ip =  IP.new(ip_addr)
           ips[ip_addr] = ip
         end
         hostname = entry['host']
         if hostname
           host = hosts[hostname]
-          if ! host
+         unless host
             host =  Host.new(hostname) unless host
             hosts[hostname] = host
           end

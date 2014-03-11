@@ -12,7 +12,7 @@ curl -XGET http://127.0.0.1:9292/pools/first
 Add a pool:
 curl -XPUT http://127.0.0.1:9292/pools/second -d @poolcreate.json
 or stdin:
-curl -XPUT http://127.0.0.1:9292/pools/second -d @-
+curl -XPUT http://127.0.0.1:9292/pools/third -d @-
 {"range": "10.10.0.0/24"}
 <Ctl-D>
 
@@ -23,7 +23,7 @@ Show an interface:
 curl -XGET http://127.0.0.1:9292/interfaces/cheddarcheese.example.com
 
 Create an interface:
-curl -XPUT http://127.0.0.1:9292/pools/second/mahchegocheese.example.com -d @-
+curl -XPUT http://127.0.0.1:9292/pools/second/mahchegocheese.example.com -v -d @-
 {"mac":"12:34:56:78:99","type":"primary","host":"manchegocheese"}
 ^D
 
@@ -42,7 +42,7 @@ curl -XGET http://127.0.0.1:9292/hosts/manchegocheese
 
 You can create a pool with gateway and/or netmask:
 curl -XPUT http://127.0.0.1:9292/pools/second -d @-
-{"range": ["10.10.10.2", "10.10.10.6"], "netmask": "255.255.255.0", "gateway": "10.10.10.1"}
+{"range": ["10.10.10.55", "10.10.10.75"], "netmask": "255.255.255.0", "gateway": "10.10.10.1"}
 ^D
 If your pool has a gateway/netmask, interfaces from that pool will get those returned
 curl -XPUT http://127.0.0.1:9292/pools/second/mahchegocheese.example.com -d @-

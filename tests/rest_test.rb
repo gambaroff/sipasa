@@ -9,50 +9,10 @@ class TestRestInterfaces <  Test::Unit::TestCase
   def app
     Sinatra::Application
   end
-
-
-=begin
- List pools:
-curl -XGET http://127.0.0.1:9292/pools
-
-Show a pool:
-curl -XGET http://127.0.0.1:9292/pools/first
-
-Add a pool:
-curl -XPUT http://127.0.0.1:9292/pools/second -d @poolcreate.json
-or stdin:
-curl -XPUT http://127.0.0.1:9292/pools/second -d @-
-{"range": "10.10.0.0/24"}
-<Ctl-D>
-
-Show interfaces:
-curl -XGET http://127.0.0.1:9292/interfaces
-
-Show an interface:
-curl -XGET http://127.0.0.1:9292/interfaces/cheddarcheese.example.com
-
-Create an interface:
-curl -XPUT http://127.0.0.1:9292/pools/second/mahchegocheese.example.com -d @-
-{"mac":"12:34:56:78:99","type":"primary","host":"manchegocheese"}
-^D
-
-Show IPs:
-curl -XGET http://127.0.0.1:9292/ips
-
-Show an IP:
-curl -XGET http://127.0.0.1:9292/ips/192.168.2.4
-
-
-Show hosts:
-curl -XGET http://127.0.0.1:9292/hosts
-
-Show an interface:
-curl -XGET http://127.0.0.1:9292/interfaces/manchegocheese
- 
-=end
-
+  
   def setup
-    File.delete("ipworld.json") if File.exists?("ipworld.json")
+    JsonStore.new("ipworld-testing.json")
+    File.delete("ipworld-testing.json") if File.exists?("ipworld-testing.json")
   end
   
   def test_pool_starts_empty
@@ -63,7 +23,6 @@ curl -XGET http://127.0.0.1:9292/interfaces/manchegocheese
 
   def test_pool_creation
     put '/pools/corp_private', '{"range": "10.10.10.0/24"}'
-    response = last_response
     assert_equal '', last_response.body
     assert_equal 201, last_response.status
   end
