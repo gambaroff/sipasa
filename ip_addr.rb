@@ -41,11 +41,7 @@ class Pool
   end
 
   def first_available
-    for ip in @range
-      if @ips[ip.to_s] == nil
-      return ip
-      end
-    end
+    @range.each{|ip| return ip unless @ips.include?(ip.to_s)}
     return nil
   end
   
