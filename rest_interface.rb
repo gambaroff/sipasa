@@ -28,7 +28,7 @@ put '/pools/:pool' do
     netmask: input['netmask'],
     gateway: input['gateway']
   }
-  for poolname, pool in @pools
+  for poolname_it, pool in @pools
     if (pool.range.first <= range.last) and (range.first <= pool.range.last)
       status 409
       return
