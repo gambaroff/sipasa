@@ -48,6 +48,13 @@ class Pool
     end
     return nil
   end
+  
+  def find_host(hostname)
+    @interfaces.each do |_,interface|
+      return interface.host if interface.host.name == hostname
+    end
+  end
+  
 end
 
 class IP
@@ -158,7 +165,7 @@ class GraphFactory
       all_ips.merge!(ips)
       pools[poolname] = pool
     end
-    return pools, all_interfaces, all_ips, hosts
+    return pools
   end
 
 end

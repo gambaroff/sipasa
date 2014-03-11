@@ -5,7 +5,7 @@ require_relative 'file_store'
 get '/pools' do
   #format_response :json
   json_file = JsonStore.new
-  pools, interfaces, ips, hosts = GraphFactory.new.read(json_file.retrieve())
+  pools = GraphFactory.new.read(json_file.retrieve())
   ranges = {}
   pools.each do |name, pool|
     ranges[name] = pool.range
@@ -17,7 +17,7 @@ put '/pools/:pool' do
   poolname = params['pool']
   input = JSON.parse(request.body.read)
   json_file = JsonStore.new
-  pools, interfaces, ips, hosts = GraphFactory.new.read(json_file.retrieve())
+  pools = GraphFactory.new.read(json_file.retrieve())
   range = input['range']
   options = {
     immutable: input['immutable'],
@@ -37,7 +37,7 @@ end
 
 get '/pools/:pool' do
   json_file = JsonStore.new
-  pools, interfaces, ips, hosts = GraphFactory.new.read(json_file.retrieve())
+  pools = GraphFactory.new.read(json_file.retrieve())
   poolname = params['pool']
   pool = pools[poolname]
   pool.interfaces = pool.interfaces.keys
@@ -46,16 +46,22 @@ end
 
 get '/interfaces' do
   json_file = JsonStore.new
-  pools, interfaces, ips, hosts = GraphFactory.new.read(json_file.retrieve())
-  ip_entry = params['interface']
-  interfaces = interfaces.map { |name, value| name }.to_json 
+  pools = GraphFactory.new.read(json_file.retrieve())
+  interfaces = pools.collect {|_,pool| pool.interfaces.keys}.flatten
+  interfaces.to_json 
 end
 
 get '/interfaces/:interface' do
   json_file = JsonStore.new
-  pools, interfaces, ips, hosts = GraphFactory.new.read(json_file.retrieve())
-  ip_entry = params['interface']
-  interfaces[ip_entry].to_json
+  pools = GraphFactory.new.read(json_file.retrieve())
+  if_entry = params['interface']
+  interfaces = pools.collect{|_,pool| pool.interfaces.fetch(if_entry)}
+  if interfaces.empty?
+    status 404
+  else
+    interface = interfaces[0]
+    interface.to_json
+  end
 end
 
 put '/pools/:pool/:interface' do
@@ -63,7 +69,7 @@ put '/pools/:pool/:interface' do
   interfacename = params['interface']
   input = JSON.parse(request.body.read)
   json_file = JsonStore.new
-  pools, interfaces, ips, hosts = GraphFactory.new.read(json_file.retrieve())
+  pools = GraphFactory.new.read(json_file.retrieve())
   pool = pools[poolname]
   interface, is_new = pool.provision(interfacename, input["mac"], input["type"], input["host"])
   if is_new
@@ -83,38 +89,46 @@ end
 
 get '/ips' do
   json_file = JsonStore.new
-  pools, interfaces, ips, hosts = GraphFactory.new.read(json_file.retrieve())
-  ips.map{|name, value|name}.to_json
+  pools = GraphFactory.new.read(json_file.retrieve())
+  ips = pools.collect {|_,pool| pool.ips.keys}.flatten
+  ips.to_json
 end
 
 get '/ips/:ip' do
   json_file = JsonStore.new
-  pools, interfaces, ips, hosts = GraphFactory.new.read(json_file.retrieve())
+  pools = GraphFactory.new.read(json_file.retrieve())
   ipaddr = params['ip']
-  ip = ips[ipaddr]
-  interfaces = ip.interfaces.map do |name, value|
-    name
+  ips = pools.collect{|_,pool| pool.ips.fetch(ipaddr)}
+  if ips.empty?
+    status 404
+  else
+    ip = ips[0]
+    ip.interfaces = ip.interfaces.keys
+    ip.hosts = ip.hosts.keys
+    ip.to_json
   end
-  hosts = ip.hosts.map do |name, value|
-    name
-  end
-  ip.interfaces = interfaces
-  ip.hosts = hosts
-  ip.to_json
 end
 
 
 get '/hosts' do
   json_file = JsonStore.new
-  pools, interfaces, ips, hosts = GraphFactory.new.read(json_file.retrieve())
-  hosts.map{|host, value|host}.to_json
+  pools = GraphFactory.new.read(json_file.retrieve())
+  filter = Proc.new{|_,interface| interface.host.name}
+  hosts = pools.collect {|_,pool| pool.interfaces.collect(&filter)}.flatten.uniq
+  hosts.to_json
 end
 
 get '/hosts/:host' do
   json_file = JsonStore.new
-  pools, interfaces, ips, hosts = GraphFactory.new.read(json_file.retrieve())
+  pools = GraphFactory.new.read(json_file.retrieve())
   hostname = params['host']
-  host = hosts[hostname]
-  
-  host.to_json
+  hosts = pools.collect {|_,pool| pool.find_host(hostname)}
+  if hosts.empty?
+    status 404
+  else
+    host = hosts[0]
+    host.interfaces = host.interfaces.keys
+    host.ips = host.ips.keys
+    host.to_json
+  end
 end

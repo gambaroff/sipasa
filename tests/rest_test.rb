@@ -87,6 +87,7 @@ class TestRestInterfaces <  Test::Unit::TestCase
     put '/pools/corp_private/swisscheese-primary', '{"mac":"12:34:56:78:95","type":"primary","host":"swisscheese"}'
     put '/pools/corp_private/manchegocheese-vhost-www.example.com', '{"mac":"12:34:56:78:94","type":"vhost","host":"manchegocheese"}'
     get '/ips'
+    out=last_response.body
     assert_equal '["10.10.10.0","10.10.10.1","10.10.10.2"]', last_response.body
     assert_equal 200, last_response.status
     get '/ips/10.10.10.0'
