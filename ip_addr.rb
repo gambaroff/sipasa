@@ -113,8 +113,6 @@ end
 class GraphFactory
   def read(json)
     resource = JSON.parse(json)
-    all_interfaces = {}
-    all_ips = {}
     hosts = {}
     pools = {}
     resource.each do |poolname, poolentries|
@@ -143,13 +141,11 @@ class GraphFactory
           end
           host.ips[ip_addr] = ip
         end
-        # do something with IP
-        if all_interfaces[interface]
-          raise "duplicate interfaces exist"
-        end
+        # if all_interfaces[interface]
+          # raise "duplicate interfaces exist"
+        # end
         iface = Interface.new(interface, ip, entry['mac'], entry['type'], entry['requested'], host)
         interfaces[interface] = iface
-        all_interfaces[interface] = iface
         ip.interfaces[interface] = iface
         ip.hosts[hostname] = host
         if hostname
@@ -158,7 +154,6 @@ class GraphFactory
       end
       pool.interfaces = interfaces
       pool.ips = ips
-      all_ips.merge!(ips)
       pools[poolname] = pool
     end
     return pools
